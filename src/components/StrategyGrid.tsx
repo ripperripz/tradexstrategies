@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import StrategyCard from "./StrategyCard";
 import StrategyFilters from "./StrategyFilters";
+import { api } from "@/lib/api";
 
 const StrategyGrid = () => {
   const [strategies, setStrategies] = useState<any[]>([]);
@@ -17,31 +18,24 @@ const StrategyGrid = () => {
     const fetchStrategies = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/api/strategies');
+        const data = await api.getAllStrategies();
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch strategies');
-        }
-        
-        const data = await response.json();
-        
-        // Convert snake_case to camelCase and add indicators
+        // Convert snake_case from DB to camelCase and add indicators
         let formattedStrategies = data.strategies.map((s: any) => ({
           id: s.id,
           name: s.name,
           market: s.market,
           timeframe: s.timeframe,
-          winRate: s.win_rate,
-          profitFactor: s.profit_factor,
-          maxDrawdown: s.max_drawdown,
-          avgReturn: s.avg_return,
-          indicators: s.indicators || ["Technical Analysis"], // Default if not in DB
+          winRate: s.winRate || s.win_rate,
+          profitFactor: s.profitFactor || s.profit_factor,
+          maxDrawdown: s.maxDrawdown || s.max_drawdown,
+          avgReturn: s.avgReturn || s.avg_return,
+          indicators: s.indicators || ["Technical Analysis"],
         }));
 
         setStrategies(formattedStrategies);
       } catch (error) {
         console.error('Error fetching strategies:', error);
-        // Fallback to empty array on error
         setStrategies([]);
       } finally {
         setLoading(false);
@@ -50,6 +44,7 @@ const StrategyGrid = () => {
 
     fetchStrategies();
   }, []);
+
 
   const clearAllFilters = () => {
     setSelectedMarket("All");

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, TrendingDown, Target, BarChart2, Download } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { api } from "@/lib/api";
 
 // Helper function to generate realistic backtest data
 const generateBacktestData = (equity: any[], startPrice: number, volatility: number) => {
@@ -91,24 +92,21 @@ const StrategyDetail = () => {
     const fetchStrategy = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:3001/api/strategies/${id}`);
+        if (!id) return;
         
-        if (!response.ok) {
-          throw new Error('Strategy not found');
-        }
-        
-        const data = await response.json();
+        const data = await api.getStrategyById(Number(id));
         let strategyData = data.strategy;
         
         // Convert snake_case from database to camelCase for frontend
+        // Supporting both DB format and Mock format (fallback)
         strategyData = {
           ...strategyData,
-          winRate: strategyData.win_rate,
-          profitFactor: strategyData.profit_factor,
-          maxDrawdown: strategyData.max_drawdown,
-          avgReturn: strategyData.avg_return,
-          backtestData: strategyData.backtest_data,
-          monthlyReturns: strategyData.monthly_returns,
+          winRate: strategyData.win_rate || strategyData.winRate,
+          profitFactor: strategyData.profit_factor || strategyData.profitFactor,
+          maxDrawdown: strategyData.max_drawdown || strategyData.maxDrawdown,
+          avgReturn: strategyData.avg_return || strategyData.avgReturn,
+          backtestData: strategyData.backtest_data || strategyData.backtestData,
+          monthlyReturns: strategyData.monthly_returns || strategyData.monthlyReturns,
         };
         
         // Generate backtestData if it doesn't exist
